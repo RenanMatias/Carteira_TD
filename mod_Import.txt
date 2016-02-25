@@ -1,0 +1,141 @@
+Option Explicit
+Public dbQtdeTitulo(20) As Double
+
+Function Download_File(ByVal vWebFile As String, ByVal vLocalFile As String) As Boolean
+    Dim oXMLHTTP As Object, i As Long, vFF As Long, oResp() As Byte
+
+    'You can also set a ref. to Microsoft XML, and Dim oXMLHTTP as MSXML2.XMLHTTP
+    Set oXMLHTTP = CreateObject("MSXML2.XMLHTTP")
+    oXMLHTTP.Open "GET", vWebFile, False 'Open socket to get the website
+    oXMLHTTP.Send 'send request
+
+    'Wait for request to finish
+    Do While oXMLHTTP.readyState <> 4
+    DoEvents
+    Loop
+
+    oResp = oXMLHTTP.responseBody 'Returns the results as a byte array
+
+    'Create local file and save results to it
+    vFF = FreeFile
+    If Dir(vLocalFile) <> "" Then Kill vLocalFile
+    Open vLocalFile For Binary As #vFF
+    Put #vFF, , oResp
+    Close #vFF
+
+    'Clear memory
+    Set oXMLHTTP = Nothing
+End Function
+
+Sub ImportValorAtualtitulo()
+
+    Dim sFile, sURL(20), sNameTitulo, i As String
+    Dim c, l, contador As Byte: c = 10: contador = 1
+    Dim t As Integer
+    
+    Const sURLprincipal = "http://www.tesouro.fazenda.gov.br/documents/10180/137713/"
+    
+    Do While Not Plan1.Range("A" & c) = Empty 'enquanto a celula não for nula
+    
+        'procura pelo nome do título na planilha 3 e retorna a sigla
+        sNameTitulo = WorksheetFunction.VLookup(Plan1.Range("A" & c), Plan3.Range("A3:E" & Plan3.UsedRange.Rows.Count), 2, False)
+        For l = 3 To Plan3.UsedRange.Rows.Count
+    
+            If Plan1.Range("A" & c) = Plan3.Range("A" & l) Then
+            
+                If Plan1.Range("B" & c) = Plan3.Range("C" & l) Then
+                
+                    sFile = Plan3.Range("e" & l)
+                    
+                End If
+            
+            End If
+        
+        Next l
+        
+        'Substitui espaços por undeline
+        sNameTitulo = Replace(sNameTitulo, " ", "_")
+        
+        'acrescenta o ano atual com o .xls
+        sNameTitulo = sNameTitulo & "_" & Year(Date) & ".xls"
+        
+        sURL(contador) = sURLprincipal & sNameTitulo
+        
+        t = Len(sURL(contador)) 'contar caracter
+        i = Mid(sURL(contador), t, 1) 'contador de caracter
+        
+        Download_File sURL(contador), Application.ActiveWorkbook.Path & "\" & sNameTitulo 'faz o download do arquivo xls e coloca na pasta corrente à panilha ativa
+        
+        Call Abrir_Copiar_Colar(sNameTitulo, sFile, c)
+        
+        '*** CONTADORES ***
+        contador = contador + 1
+        c = c + 1
+    
+    Loop
+    
+    Plan1.Unprotect "xxxxxxx"
+    Plan1.Range("H8") = "Ultima Atualização " & Now
+    Plan1.Protect "xxxxxxx"
+    MsgBox "Valores Atualizados com Sucesso!", vbInformation, "Aviso"
+    
+End Sub
+
+Sub Abrir_Copiar_Colar(ByVal sFile As String, ByVal bTitulo As String, ByVal cl As String)
+
+    Dim FSO As Object
+    Dim Pasta, OpenBook, sValue As Double
+    Dim Planilha As Object
+    
+    Set FSO = CreateObject("Scripting.FileSystemObject")
+    Pasta = Application.ActiveWorkbook.Path 'Pasta com as planilhas que serão abertas e copiadas
+    
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+      
+    Workbooks.Open (Pasta & "/" & sFile)
+    OpenBook = ActiveWorkbook.Name
+        
+    sValue = Sheets(bTitulo).Range("E" & Sheets(bTitulo).UsedRange.Rows.Count) 'captura o ultimo PU de venda da planilha indicada
+    
+    Windows(ThisWorkbook.Name).Activate 'foca na planilha mestre
+    
+    Plan1.Unprotect "xxxxxxx"
+    Plan1.Range("E" & cl) = sValue 'set o valor atual na célula de preco unitário do título
+    Plan1.Protect "xxxxxxx"
+    
+    Application.CutCopyMode = False
+    Workbooks(OpenBook).Close False
+
+    
+    Application.ScreenUpdating = True
+    
+    Kill Application.ActiveWorkbook.Path & "\" & sFile
+    
+    Application.Calculation = xlCalculationAutomatic
+
+End Sub
+
+Sub EfetivarCompra()
+
+    Dim r, c, i As Integer
+    
+    If MsgBox("Deseja efetivar essa compra?", vbQuestion + vbYesNo) = vbNo Then Exit Sub
+
+    r = 10
+    c = 1
+    i = 2
+
+    Do While Not Plan1.Cells(r, c) = Empty
+    
+        Plan2.Cells(i, 1) = Plan1.Cells(r, c)
+        Plan2.Cells(i, 2) = Plan1.Cells(r, c + 4)
+        
+        r = r + 1
+        i = i + 1
+        
+    Loop
+    
+    MsgBox "Compra efetivada", vbExclamation
+
+End Sub

@@ -1,0 +1,123 @@
+Option Explicit
+
+Private Sub btnAddAtivo_Click()
+
+    Dim strAtivo, strVencimento As String
+    Dim dbQtde As Double
+    Dim crPUVenda As Currency
+    Dim UltimaLinha As Integer
+    Dim r As Byte
+    
+    ' *** VALIDAÇÃO ***
+    If IsNull(lbTitulos) Then
+    
+        MsgBox "Selecione um título.", vbCritical
+        Exit Sub
+        
+    ElseIf tbQtdeAtual = Empty Then
+    
+        MsgBox "Quantidade inválida.", vbCritical
+        Exit Sub
+        
+    ElseIf tbPUV_Atual = Empty Then
+    
+        MsgBox "Informe o valor atual do Preço Unitário de Venda.", vbCritical
+        Exit Sub
+        
+    End If
+    
+    ' *** GET VARIAVEIS ***
+    
+    strAtivo = lbTitulos.Column(0)
+    strVencimento = lbTitulos.Column(2)
+    dbQtde = tbQtdeAtual
+    crPUVenda = tbPUV_Atual
+    
+    If MsgBox("Resumo do Ativo:" & Chr(13) & Chr(13) & _
+              "Título: " & strAtivo & Chr(13) & _
+              "Vencimento: " & strVencimento & Chr(13) & _
+              "Quantidade: " & dbQtde & Chr(13) & _
+              "Preco Unitário de Venda: " & Format(crPUVenda, "R$ #.00") & Chr(13) & Chr(13) & _
+              "Realmetne deseja adcionar esse Ativo?", vbQuestion + vbYesNo, "Resumo") = vbNo Then Exit Sub
+    
+    Unload Me
+    
+    ' *** ADICIONANDO NA PLANILA ***
+    
+    'Plan1 - CARTEIRA
+    
+    With Plan1
+    .Unprotect "xxxxxxx"
+        r = 10
+        
+        Do While Not .Cells(r, 1) = Empty
+        
+            r = r + 1
+        
+        Loop
+            Rows(r).Insert
+        
+            .Range("A" & r) = strAtivo
+            .Range("B" & r) = strVencimento
+            .Range("C" & r) = dbQtde
+            .Range("E" & r) = crPUVenda
+            .Range("D" & r).FillDown
+    
+    .Protect "xxxxxxx"
+    End With
+    
+    
+    
+    'Plan2 - PUV Ulima Compra
+    
+    With Plan2
+    .Unprotect "xxxxxxx"
+    
+        UltimaLinha = .UsedRange.Rows.Count + 1
+        
+        .Range("A" & UltimaLinha) = strAtivo
+        .Range("B" & UltimaLinha) = crPUVenda
+        .Range("C" & UltimaLinha) = strVencimento
+      
+    .Protect "xxxxxxx"
+    End With
+    
+    MsgBox "Ativo Adcionado!", vbInformation
+
+End Sub
+
+Private Sub tbPUV_Atual_AfterUpdate()
+    tbPUV_Atual.Value = Format(tbPUV_Atual, "R$ #.00")
+End Sub
+
+Private Sub tbPUV_Atual_Change()
+
+    If Not IsNumeric(tbPUV_Atual) Then tbPUV_Atual.Value = vbNullString
+        
+End Sub
+
+Private Sub tbQtdeAtual_Change()
+
+    If Not IsNumeric(tbQtdeAtual) Then tbQtdeAtual.Value = vbNullString
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+    Dim UltimaLinha As Long
+    Dim i As Long
+    
+    UltimaLinha = Plan3.UsedRange.Rows.Count
+    
+    'Para Linha de 3 até o final da planilha
+    For i = 3 To UltimaLinha
+    
+        lbTitulos.AddItem Plan3.Range("A" & i)
+        lbTitulos.List(lbTitulos.ListCount - 1, 1) = Plan3.Range("B" & i)
+        lbTitulos.List(lbTitulos.ListCount - 1, 2) = Plan3.Range("C" & i)
+    
+    Next i
+    
+    lbTitulos.ColumnWidths = "170;80;40"
+
+End Sub

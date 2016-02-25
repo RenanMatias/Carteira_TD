@@ -1,0 +1,92 @@
+Option Explicit
+Function SIGLA_TITULO(titulo As String) As String
+
+    Select Case titulo
+    
+        Case "Tesouro IPCA+"
+            SIGLA_TITULO = "NTN-B Principal"
+        Case "Tesouro IPCA+ com Juros Semestrais"
+            SIGLA_TITULO = "NTN-B"
+        Case "Tesouro Prefixado"
+            SIGLA_TITULO = "LTN"
+        Case "Tesouro Prefixado com Juros Semestrais"
+            SIGLA_TITULO = "NTN-F"
+        Case "Tesouro Selic"
+            SIGLA_TITULO = "LFT"
+    
+    End Select
+
+End Function
+
+Sub OpenfrmAddAtivo()
+
+    frmAddAtivo.Show
+
+End Sub
+
+Sub OpenFrmExcluirAtivo()
+
+    frmExcluirAtivo.Show
+
+End Sub
+
+Sub OpenFrmTitulo()
+
+    frmTitulo.Show
+
+End Sub
+Sub OpenFrmExcluirTitulo()
+
+    frmExcluirTitulo.Show
+
+End Sub
+
+Sub teste()
+
+
+    With Plan1
+    
+        r = 10
+        
+        Do While Not .Cells(r, 1) = Empty
+        
+            r = r + 1
+        
+        Loop
+            Rows(r).Insert
+        
+            .Range("A" & r) = strAtivo
+            .Range("B" & r) = strVencimento
+            .Range("C" & r) = dbQtde
+            .Range("E" & r) = crPUVenda
+            
+    End With
+
+End Sub
+
+Sub bloqueiaTabSheets()
+
+    If ActiveWindow.DisplayWorkbookTabs = True Then
+
+        ActiveWindow.DisplayWorkbookTabs = False
+        
+    Else
+    
+        ActiveWindow.DisplayWorkbookTabs = True
+        
+    End If
+
+End Sub
+
+Sub AtivaPlan1()
+
+    Plan1.Activate
+
+End Sub
+
+Sub AtivaPlan2()
+
+    Plan2.Activate
+
+End Sub
+

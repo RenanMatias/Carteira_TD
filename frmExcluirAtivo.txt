@@ -1,0 +1,76 @@
+Option Explicit
+
+Private Sub btnExcluirAtivo_Click()
+
+    Dim posicao, i As Byte: i = 9
+    
+    If IsNull(lbAtivo) Then
+    
+        MsgBox "Selecione um Ativo", vbCritical
+        Exit Sub
+        
+    End If
+    
+    If MsgBox("Realmente deseja excluir este ativo?", vbQuestion + vbYesNo, "ATENÇÃO") = vbNo Then Exit Sub
+    
+    'plan1
+    posicao = lbAtivo.ListIndex
+    
+    For i = i To i + posicao
+    
+    Next i
+    
+    If i = 10 And Range("A" & i + 1) = Empty Then
+    
+        MsgBox "Função não permitida." & Chr(13) & "A carteira deve ter pelo menos um ativo.", vbCritical
+        Exit Sub
+    
+    Else
+    
+        Plan1.Unprotect "xxxxxxx"
+        Plan1.Rows(i).Delete
+        Plan1.Protect "xxxxxxx"
+        
+    End If
+    
+    'plan2
+    
+    With Plan2
+        
+        i = 1
+        
+        For i = 1 To i + posicao
+    
+        Next i
+        .Unprotect "xxxxxxx"
+        .Rows(i).Delete
+        .Protect "xxxxxxx"
+    
+    End With
+    
+    
+    Unload Me
+    
+    MsgBox "Ativo excluído.", vbInformation
+    
+End Sub
+
+Private Sub UserForm_Initialize()
+    
+    Dim r As Byte
+
+    r = 10
+
+    With Plan1
+    
+        Do While Not .Cells(r, 1) = Empty
+        
+            lbAtivo.AddItem .Cells(r, 1)
+            
+            r = r + 1
+        
+        Loop
+        
+    End With
+    
+End Sub

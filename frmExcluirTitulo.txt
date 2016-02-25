@@ -1,0 +1,64 @@
+Option Explicit
+
+Private Sub btnExcluirTitulo_Click()
+
+    Dim posicao, i As Byte
+    
+    If IsNull(lbTitulo) Then
+    
+        MsgBox "Selecione um Título", vbCritical
+        Exit Sub
+        
+    End If
+    
+    If MsgBox("Realmente deseja excluir este título?", vbQuestion + vbYesNo, "ATENÇÃO") = vbNo Then Exit Sub
+    
+    posicao = lbTitulo.ListIndex 'posição da linha selecionada
+    
+    'incrementa o i de acordo com a posição do titulo selecionado
+    For i = 2 To posicao + 2
+    
+    Next i
+
+    If i = 3 Then
+    
+        MsgBox "Função não permitida." & Chr(13) & "A relação deve ter pelo menos um título.", vbCritical
+    
+    Else
+    
+        Plan3.Unprotect "xxxxxxx"
+        Plan3.Rows(i).Delete
+        Plan3.Protect "xxxxxxx"
+        
+    End If
+    
+    Unload Me
+    
+    MsgBox "Título Excluído!", vbInformation
+    
+    
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+    Dim r As Byte
+
+    r = 3
+
+    With Plan3
+    
+        Do While Not .Cells(r, 1) = Empty
+        
+            lbTitulo.AddItem .Range("A" & r)
+            lbTitulo.List(lbTitulo.ListCount - 1, 1) = .Range("C" & r)
+            
+            r = r + 1
+        
+        Loop
+        
+    End With
+    
+    lbTitulo.ColumnWidths = "155;40"
+
+End Sub

@@ -1,0 +1,83 @@
+Option Explicit
+
+Private Sub btnInserirTitulo_Click()
+
+    Dim dtVencimento As Date
+    Dim UltimaLinha As Integer
+
+    '*** VALIDA CAMPOS ***
+    If cbTitulo = Empty Then
+        MsgBox "Selecione um título.", vbCritical
+        Exit Sub
+    ElseIf tbDtVencimento = Empty Then
+        MsgBox "Informe uma data de vencimento.", vbCritical
+        Exit Sub
+    End If
+    
+    '*** VALIDA DATA ****
+    On Error Resume Next
+    dtVencimento = tbDtVencimento
+    If dtVencimento < Date Or Not IsDate(tbDtVencimento) Then
+    
+        MsgBox "A data informada não é válida.", vbCritical
+        Exit Sub
+    
+    End If
+    
+    With Plan3
+    .Unprotect "xxxxxxx"
+    
+        UltimaLinha = .UsedRange.Rows.Count
+        
+        .Range("A" & UltimaLinha + 1) = cbTitulo
+        .Range("D" & UltimaLinha + 1) = dtVencimento
+        
+    .Protect "xxxxxxx"
+    End With
+    
+    Unload Me
+    
+    ActiveWorkbook.Worksheets("Lista dos Títulos").ListObjects("tabTitulos").Sort. _
+        SortFields.Clear
+    ActiveWorkbook.Worksheets("Lista dos Títulos").ListObjects("tabTitulos").Sort. _
+        SortFields.Add Key:=Range("tabTitulos[[#All],[Título]]"), SortOn:= _
+        xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    With ActiveWorkbook.Worksheets("Lista dos Títulos").ListObjects("tabTitulos"). _
+        Sort
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    
+    MsgBox "Título Cadastrado.", vbInformation
+
+End Sub
+
+Private Sub tbDtVencimento_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    'Limita a Qde de caracteres
+    tbDtVencimento.MaxLength = 10
+ 
+    'para permitir que apenas números sejam digitados
+    If KeyAscii < Asc("0") Or KeyAscii > Asc("9") Then
+        KeyAscii = 0
+    End If
+ 
+End Sub
+ 
+Private Sub tbDtVencimento_Change()
+    'Formata : dd/mm/aa
+    If Len(tbDtVencimento) = 2 Or Len(tbDtVencimento) = 5 Then
+        tbDtVencimento.Text = tbDtVencimento.Text & "/"
+        SendKeys "{End}", True
+    End If
+End Sub
+
+Private Sub UserForm_Initialize()
+    cbTitulo.AddItem ("Tesouro IPCA+")
+    cbTitulo.AddItem "Tesouro IPCA+ com Juros Semestrais"
+    cbTitulo.AddItem "Tesouro Prefixado"
+    cbTitulo.AddItem "Tesouro Prefixado com Juros Semestrais"
+    cbTitulo.AddItem "Tesouro Selic"
+End Sub
